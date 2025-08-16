@@ -1,103 +1,131 @@
-import Image from "next/image";
+"use client";
+import { useRef, useState } from "react";
 
-export default function Home() {
+export default function App() {
+  const [summary, setSummary] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+  const [showMessage, setShowMessage] = useState(false);
+  const [emails, setEmails] = useState("");
+  const [prompt, setPrompt] = useState("");
+  const transcriptRef = useRef();
+
+  const handleSummarize = async () => {
+    const file = transcriptRef.current?.files[0];
+    if (!file) {
+      setMessage("Please upload a transcript file.");
+      setShowMessage(true);
+      return;
+    }
+    if (!prompt) {
+      setMessage("Please enter a custom instruction/prompt.");
+      setShowMessage(true);
+      return;
+    }
+    setLoading(true);
+    // Send transcript and prompt to backend API for real Groq summary
+    const text = await file.text();
+    try {
+      const res = await fetch("/api/summarize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ transcript: text, prompt }),
+      });
+      const data = await res.json();
+      setSummary(data.summary);
+      setMessage("Summary generated! You can now edit it.");
+    } catch (err) {
+      setSummary("");
+      setMessage("Error generating summary. Please try again.");
+    }
+    setLoading(false);
+    setShowMessage(true);
+  };
+
+  const handleSend = async () => {
+    if (!summary) {
+      setMessage("Please generate and edit a summary first.");
+      setShowMessage(true);
+      return;
+    }
+    if (!emails) {
+      setMessage("Please enter at least one recipient email address.");
+      setShowMessage(true);
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await fetch("/api/send-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ summary, recipients: emails }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setMessage("Summary is being shared via email!");
+      } else {
+        setMessage(`Failed to send email: ${data.error || "Unknown error"}`);
+      }
+    } catch (err) {
+      setMessage("Error sending email. Please try again.");
+    }
+    setLoading(false);
+    setShowMessage(true);
+  };
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.js
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
+      <div className="container bg-white rounded-xl shadow-lg p-6 w-full max-w-2xl">
+        <h1 className="text-3xl font-bold text-center text-gray-800 mb-6">AI Meeting Notes Summarizer</h1>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+        {/* File Upload Section */}
+        <div className="section mb-4">
+          <label htmlFor="transcript-upload" className="block text-lg font-semibold text-gray-700 mb-2">Upload Meeting Transcript:</label>
+          <input type="file" id="transcript-upload" accept=".txt" ref={transcriptRef} className="w-full p-3 border border-gray-300 rounded-lg text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300 ease-in-out" />
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+        {/* Custom Prompt Section */}
+        <div className="section mb-4">
+          <label htmlFor="custom-prompt" className="block text-lg font-semibold text-gray-700 mb-2">Custom Prompt / Instruction:</label>
+          <textarea id="custom-prompt" value={prompt} onChange={e => setPrompt(e.target.value)} placeholder="e.g., 'Summarize in bullet points for executives' or 'Highlight only action items.'" className="w-full p-3 border border-gray-300 rounded-lg text-gray-700 bg-white resize-y min-h-[150px] focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300 ease-in-out" />
+        </div>
+
+        {/* Generate Summary Button */}
+        <div className="section mb-6">
+          <button onClick={handleSummarize} disabled={loading} className={`w-full p-4 rounded-lg font-bold text-white transition duration-300 ease-in-out ${loading ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500'}`}>
+            {loading ? 'Generating...' : 'Generate Summary'}
+          </button>
+        </div>
+
+        {/* Generated Summary Section */}
+        <div className="section mb-4">
+          <label htmlFor="summary-output" className="block text-lg font-semibold text-gray-700 mb-2">Generated Summary (Editable):</label>
+          <textarea id="summary-output" value={summary} onChange={e => setSummary(e.target.value)} placeholder="Your AI-generated summary will appear here..." className="w-full p-3 border border-gray-300 rounded-lg text-gray-700 bg-white resize-y min-h-[150px] focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300 ease-in-out" />
+        </div>
+
+        {/* Share Summary Section */}
+        <div className="section mb-4">
+          <label htmlFor="recipient-emails" className="block text-lg font-semibold text-gray-700 mb-2">Share via Email (comma-separated):</label>
+          <input type="email" id="recipient-emails" value={emails} onChange={e => setEmails(e.target.value)} placeholder="e.g., john.doe@example.com, jane.smith@example.com" className="w-full p-3 border border-gray-300 rounded-lg text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300 ease-in-out" />
+        </div>
+
+        {/* Share Summary Button */}
+        <div className="section">
+          <button onClick={handleSend} disabled={loading} className={`w-full p-4 rounded-lg font-bold text-white transition duration-300 ease-in-out ${loading ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500'}`}>
+            {loading ? 'Sharing...' : 'Share Summary'}
+          </button>
+        </div>
+      </div>
+
+      {/* Message Box for user feedback */}
+      {showMessage && (
+        <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg shadow-xl z-50 text-center border-2 border-gray-200">
+          <p className="text-lg font-medium text-gray-800 mb-4">{message}</p>
+          <button onClick={() => setShowMessage(false)} className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300 ease-in-out">
+            OK
+          </button>
+        </div>
+      )}
     </div>
   );
 }
