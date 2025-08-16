@@ -4,7 +4,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import ReactMarkdown from "react-markdown";
 
-// 🆕 Expandable History Card component
+// Expandable History Card component
 function HistoryCard({ item }) {
   const [expanded, setExpanded] = useState(false);
 
@@ -51,16 +51,20 @@ export default function App() {
   const [emails, setEmails] = useState("");
   const [prompt, setPrompt] = useState("");
   const [history, setHistory] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(true); // 🔹 added loading state for history
   const transcriptRef = useRef();
 
   useEffect(() => {
     async function fetchHistory() {
+      setHistoryLoading(true);
       try {
         const res = await fetch("/api/history");
         const data = await res.json();
         if (data.success) setHistory(data.history);
-      } catch {
-        // ignore errors for now
+      } catch (err) {
+        console.error("Failed to fetch history", err);
+      } finally {
+        setHistoryLoading(false);
       }
     }
     fetchHistory();
@@ -129,72 +133,59 @@ export default function App() {
           AI Meeting Notes Summarizer
         </h1>
 
-        {/* File Upload Section */}
-        <div className="section mb-4">
-          <label
-            htmlFor="transcript-upload"
-            className="block text-lg font-semibold text-gray-700 mb-2"
-          >
+        {/* File Upload */}
+        <div className="mb-4">
+          <label className="block text-lg font-semibold text-gray-700 mb-2">
             Upload Meeting Transcript:
           </label>
-          <p className="text-black" >(use any txt file)</p>
+          <p className="text-black">(use any txt file)</p>
           <input
             type="file"
-            id="transcript-upload"
             accept=".txt"
             ref={transcriptRef}
-            className="w-full p-3 border border-gray-300 rounded-lg text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300 ease-in-out"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
-        {/* Custom Prompt Section */}
-        <div className="section mb-4">
-          <label
-            htmlFor="custom-prompt"
-            className="block text-lg font-semibold text-gray-700 mb-2"
-          >
+        {/* Custom Prompt */}
+        <div className="mb-4">
+          <label className="block text-lg font-semibold text-gray-700 mb-2">
             Custom Prompt / Instruction:
           </label>
           <textarea
-            id="custom-prompt"
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            placeholder="e.g., 'Summarize in bullet points for executives' or 'Highlight only action items.'"
-            className="w-full p-3 border border-gray-300 rounded-lg text-gray-700 bg-white resize-y min-h-[150px] focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300 ease-in-out"
+            placeholder="e.g., 'Summarize in bullet points for executives'"
+            className="w-full p-3 border border-gray-300 rounded-lg resize-y min-h-[150px] focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
-        {/* Generate Summary Button */}
-        <div className="section mb-6">
+        {/* Generate Button */}
+        <div className="mb-6">
           <button
             onClick={handleSummarize}
             disabled={loading}
-            className={`w-full p-4 rounded-lg font-bold text-white transition duration-300 ease-in-out ${
+            className={`w-full p-4 rounded-lg font-bold text-white ${
               loading
                 ? "bg-blue-400 cursor-not-allowed"
-                : "bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                : "bg-blue-600 hover:bg-blue-700"
             }`}
           >
             {loading ? "Generating..." : "Generate Summary"}
           </button>
         </div>
 
-        {/* Editable Summary + Preview */}
-        <div className="section mb-4">
-          <label
-            htmlFor="summary-output"
-            className="block text-lg font-semibold text-gray-700 mb-2"
-          >
+        {/* Summary & Preview */}
+        <div className="mb-4">
+          <label className="block text-lg font-semibold text-gray-700 mb-2">
             Generated Summary (Editable):
           </label>
           <textarea
-            id="summary-output"
             value={summary}
             onChange={(e) => setSummary(e.target.value)}
             placeholder="Your AI-generated summary will appear here..."
-            className="w-full p-3 border border-gray-300 rounded-lg text-gray-700 bg-white resize-y min-h-[150px] focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300 ease-in-out"
+            className="w-full p-3 border border-gray-300 rounded-lg resize-y min-h-[150px] focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-
           <label className="block text-lg font-semibold text-gray-700 mt-4 mb-2">
             Preview:
           </label>
@@ -203,45 +194,41 @@ export default function App() {
           </div>
         </div>
 
-        {/* Share Summary Section */}
-        <div className="section mb-4">
-          <label
-            htmlFor="recipient-emails"
-            className="block text-lg font-semibold text-gray-700 mb-2"
-          >
+        {/* Share */}
+        <div className="mb-4">
+          <label className="block text-lg font-semibold text-gray-700 mb-2">
             Share via Email (comma-separated):
           </label>
           <input
             type="email"
-            id="recipient-emails"
             value={emails}
             onChange={(e) => setEmails(e.target.value)}
-            placeholder="e.g., john.doe@example.com, jane.smith@example.com"
-            className="w-full p-3 border border-gray-300 rounded-lg text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300 ease-in-out"
+            placeholder="e.g., john@example.com"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
-
-        {/* Share Summary Button */}
-        <div className="section">
+        <div className="mb-10">
           <button
             onClick={handleSend}
             disabled={loading}
-            className={`w-full p-4 rounded-lg font-bold text-white transition duration-300 ease-in-out ${
+            className={`w-full p-4 rounded-lg font-bold text-white ${
               loading
                 ? "bg-blue-400 cursor-not-allowed"
-                : "bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                : "bg-blue-600 hover:bg-blue-700"
             }`}
           >
             {loading ? "Sharing..." : "Share Summary"}
           </button>
         </div>
 
-        {/* History Section */}
-        <div className="mt-10">
+        {/* History */}
+        <div>
           <h2 className="text-xl font-bold mb-4 text-gray-700">
             Recent Summaries
           </h2>
-          {history.length === 0 ? (
+          {historyLoading ? (
+            <p className="text-gray-500">Loading history...</p>
+          ) : history.length === 0 ? (
             <p className="text-gray-500">No history found.</p>
           ) : (
             <ul className="space-y-4">
