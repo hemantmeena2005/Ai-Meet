@@ -11,7 +11,7 @@ function HistoryCard({ item }) {
   return (
     <li className="bg-white border rounded-xl shadow-sm p-4">
       {/* Summary */}
-      <div className="text-sm text-gray-800 mb-2">
+      <div className="text-sm text-black mb-2">
         <span className="font-semibold">Summary:</span>
         <div
           className={`prose prose-sm mt-2 transition-all duration-300 ${
@@ -30,7 +30,7 @@ function HistoryCard({ item }) {
       </div>
 
       {/* Recipients */}
-      <div className="text-xs text-gray-600">
+      <div className="text-xs text-black">
         <span className="font-semibold">Recipients:</span>{" "}
         {Array.isArray(item.recipients)
           ? item.recipients.join(", ")
@@ -38,7 +38,7 @@ function HistoryCard({ item }) {
       </div>
 
       {/* Date */}
-      <div className="text-xs text-gray-400 mt-1">
+      <div className="text-xs text-black mt-1">
         {item.date ? new Date(item.date).toLocaleString() : ""}
       </div>
     </li>
@@ -51,7 +51,7 @@ export default function App() {
   const [emails, setEmails] = useState("");
   const [prompt, setPrompt] = useState("");
   const [history, setHistory] = useState([]);
-  const [historyLoading, setHistoryLoading] = useState(true); // 🔹 added loading state for history
+  const [historyLoading, setHistoryLoading] = useState(true);
   const transcriptRef = useRef();
 
   useEffect(() => {
@@ -129,13 +129,13 @@ export default function App() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
       <div className="container bg-white rounded-xl shadow-lg p-6 w-full max-w-2xl">
-        <h1 className="text-3xl font-bold text-center text-gray-800 mb-6">
+        <h1 className="text-3xl font-bold text-center text-black mb-6">
           AI Meeting Notes Summarizer
         </h1>
 
         {/* File Upload */}
         <div className="mb-4">
-          <label className="block text-lg font-semibold text-gray-700 mb-2">
+          <label className="block text-black text-lg font-semibold mb-2">
             Upload Meeting Transcript:
           </label>
           <p className="text-black">(use any txt file)</p>
@@ -143,20 +143,20 @@ export default function App() {
             type="file"
             accept=".txt"
             ref={transcriptRef}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black mt-2"
           />
         </div>
 
         {/* Custom Prompt */}
         <div className="mb-4">
-          <label className="block text-lg font-semibold text-gray-700 mb-2">
+          <label className="block text-lg font-semibold text-black mb-2">
             Custom Prompt / Instruction:
           </label>
           <textarea
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             placeholder="e.g., 'Summarize in bullet points for executives'"
-            className="w-full p-3 border border-gray-300 rounded-lg resize-y min-h-[150px] focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full p-3 border border-gray-300 rounded-lg resize-y min-h-[150px] focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
           />
         </div>
 
@@ -177,16 +177,16 @@ export default function App() {
 
         {/* Summary & Preview */}
         <div className="mb-4">
-          <label className="block text-lg font-semibold text-gray-700 mb-2">
+          <label className="block text-lg font-semibold text-black mb-2">
             Generated Summary (Editable):
           </label>
           <textarea
             value={summary}
             onChange={(e) => setSummary(e.target.value)}
             placeholder="Your AI-generated summary will appear here..."
-            className="w-full p-3 border border-gray-300 rounded-lg resize-y min-h-[150px] focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full p-3 border border-gray-300 rounded-lg resize-y min-h-[150px] focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
           />
-          <label className="block text-lg font-semibold text-gray-700 mt-4 mb-2">
+          <label className="block text-lg font-semibold text-black mt-4 mb-2">
             Preview:
           </label>
           <div className="w-full p-3 border border-gray-300 text-black rounded-lg bg-gray-50 min-h-[150px] whitespace-pre-wrap">
@@ -196,7 +196,7 @@ export default function App() {
 
         {/* Share */}
         <div className="mb-4">
-          <label className="block text-lg font-semibold text-gray-700 mb-2">
+          <label className="block text-lg font-semibold text-black mb-2">
             Share via Email (comma-separated):
           </label>
           <input
@@ -204,7 +204,7 @@ export default function App() {
             value={emails}
             onChange={(e) => setEmails(e.target.value)}
             placeholder="e.g., john@example.com"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
           />
         </div>
         <div className="mb-10">
@@ -223,13 +223,13 @@ export default function App() {
 
         {/* History */}
         <div>
-          <h2 className="text-xl font-bold mb-4 text-gray-700">
+          <h2 className="text-xl font-bold mb-4 text-black">
             Recent Summaries
           </h2>
           {historyLoading ? (
-            <p className="text-gray-500">Loading history...</p>
+            <p className="text-black">Loading history...</p>
           ) : history.length === 0 ? (
-            <p className="text-gray-500">No history found.</p>
+            <p className="text-black">No history found.</p>
           ) : (
             <ul className="space-y-4">
               {history.map((item, idx) => (
