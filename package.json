@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "groq-sdk": "^0.30.0",
+    "markdown-it": "^14.1.0",
     "next": "15.4.6",
     "nodemailer": "^7.0.5",
     "react": "19.1.0",

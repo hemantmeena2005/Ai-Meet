@@ -1,10 +1,29 @@
 export const runtime = "nodejs";
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
+import MarkdownIt from "markdown-it"; // lightweight Markdown → HTML converter
 
 export async function POST(req) {
   const { summary, recipients } = await req.json();
   try {
+    // Convert Markdown to HTML
+    const md = new MarkdownIt();
+    const htmlSummary = md.render(summary);
+
+    // Wrap in professional email template
+    const professionalEmailHtml = `
+      <p>Hi Team,</p>
+
+      <p>Please find below the summary of our recent meeting:</p>
+
+      ${htmlSummary}
+
+      <p>Kindly review the action items and next steps. Let me know if you have any questions or updates.</p>
+
+      <p>Best regards,<br/>
+      Meeting Bot</p>
+    `;
+
     let transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -14,13 +33,13 @@ export async function POST(req) {
     });
 
     const info = await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: recipients,
-      subject: "Meeting Summary",
-      text: summary,
+      from: `"Meeting Bot" <${process.env.EMAIL_USER}>`,
+      to: Array.isArray(recipients) ? recipients.join(",") : recipients,
+      subject: "Professional Meeting Summary",
+      html: professionalEmailHtml, // use the polished HTML
     });
 
-    console.log("Nodemailer info:", info); // <-- log the full info object
+    console.log("Nodemailer info:", info); // log full info object
 
     return NextResponse.json({ success: true, info });
   } catch (error) {
