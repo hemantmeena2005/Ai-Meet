@@ -1,15 +1,15 @@
 export const runtime = "nodejs";
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
-import MarkdownIt from "markdown-it";
+import { MongoClient } from "mongodb";
 
 export async function POST(req) {
   const { summary, recipients } = await req.json();
   try {
-    // Convert Markdown to HTML
-  // Use MarkdownIt with default options only (no plugins)
-  const md = new MarkdownIt();
-  const htmlSummary = md.render(summary);
+    // Dynamically import markdown-it to avoid isSpace bug
+    const MarkdownIt = (await import("markdown-it")).default;
+    const md = new MarkdownIt();
+    const htmlSummary = md.render(summary);
 
     // Wrap in professional email template
     const professionalEmailHtml = `
@@ -25,6 +25,7 @@ export async function POST(req) {
       Meeting Bot</p>
     `;
 
+    // Configure transporter
     let transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -33,14 +34,34 @@ export async function POST(req) {
       },
     });
 
+    // Send email
     const info = await transporter.sendMail({
       from: `"Meeting Bot" <${process.env.EMAIL_USER}>`,
       to: Array.isArray(recipients) ? recipients.join(",") : recipients,
       subject: "Professional Meeting Summary",
-      html: professionalEmailHtml, // use the polished HTML
+      html: professionalEmailHtml,
     });
 
-    console.log("Nodemailer info:", info); // log full info object
+    console.log("Nodemailer info:", info);
+
+    // Store HTML version in MongoDB
+    try {
+      const uri = process.env.MONGODB_URI;
+      const client = new MongoClient(uri);
+      await client.connect();
+      const db = client.db("AImeet");
+      const collection = db.collection("summaries");
+
+      await collection.insertOne({
+        summaryHtml: htmlSummary,
+        recipients,
+        date: new Date(),
+      });
+
+      await client.close();
+    } catch (dbError) {
+      console.error("MongoDB error:", dbError);
+    }
 
     return NextResponse.json({ success: true, info });
   } catch (error) {
