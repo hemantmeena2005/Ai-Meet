@@ -1,11 +1,13 @@
+
 "use client";
 import { useRef, useState } from "react";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function App() {
   const [summary, setSummary] = useState("");
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
-  const [showMessage, setShowMessage] = useState(false);
+  // Remove custom popup state
   const [emails, setEmails] = useState("");
   const [prompt, setPrompt] = useState("");
   const transcriptRef = useRef();
@@ -13,13 +15,11 @@ export default function App() {
   const handleSummarize = async () => {
     const file = transcriptRef.current?.files[0];
     if (!file) {
-      setMessage("Please upload a transcript file.");
-      setShowMessage(true);
+  toast.error("Please upload a transcript file.");
       return;
     }
     if (!prompt) {
-      setMessage("Please enter a custom instruction/prompt.");
-      setShowMessage(true);
+  toast.error("Please enter a custom instruction/prompt.");
       return;
     }
     setLoading(true);
@@ -33,24 +33,22 @@ export default function App() {
       });
       const data = await res.json();
       setSummary(data.summary);
-      setMessage("Summary generated! You can now edit it.");
+  toast.success("Summary generated! You can now edit it.");
     } catch (err) {
       setSummary("");
-      setMessage("Error generating summary. Please try again.");
+  toast.error("Error generating summary. Please try again.");
     }
     setLoading(false);
-    setShowMessage(true);
+    // setShowMessage(true);
   };
 
   const handleSend = async () => {
     if (!summary) {
-      setMessage("Please generate and edit a summary first.");
-      setShowMessage(true);
+  toast.error("Please generate and edit a summary first.");
       return;
     }
     if (!emails) {
-      setMessage("Please enter at least one recipient email address.");
-      setShowMessage(true);
+  toast.error("Please enter at least one recipient email address.");
       return;
     }
     setLoading(true);
@@ -62,15 +60,14 @@ export default function App() {
       });
       const data = await res.json();
       if (data.success) {
-        setMessage("Summary is being shared via email!");
+        toast.success("Summary is being shared via email!");
       } else {
-        setMessage(`Failed to send email: ${data.error || "Unknown error"}`);
+        toast.error(`Failed to send email: ${data.error || "Unknown error"}`);
       }
     } catch (err) {
-      setMessage("Error sending email. Please try again.");
+  toast.error("Error sending email. Please try again.");
     }
     setLoading(false);
-    setShowMessage(true);
   };
 
   return (
@@ -116,16 +113,7 @@ export default function App() {
           </button>
         </div>
       </div>
-
-      {/* Message Box for user feedback */}
-      {showMessage && (
-        <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg shadow-xl z-50 text-center border-2 border-gray-200">
-          <p className="text-lg font-medium text-gray-800 mb-4">{message}</p>
-          <button onClick={() => setShowMessage(false)} className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300 ease-in-out">
-            OK
-          </button>
-        </div>
-      )}
+  <ToastContainer position="top-right" autoClose={4000} hideProgressBar={false} newestOnTop closeOnClick pauseOnFocusLoss draggable pauseOnHover />
     </div>
   );
 }

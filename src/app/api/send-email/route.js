@@ -1,14 +1,15 @@
 export const runtime = "nodejs";
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
-import MarkdownIt from "markdown-it"; // lightweight Markdown → HTML converter
+import MarkdownIt from "markdown-it";
 
 export async function POST(req) {
   const { summary, recipients } = await req.json();
   try {
     // Convert Markdown to HTML
-    const md = new MarkdownIt();
-    const htmlSummary = md.render(summary);
+  // Use MarkdownIt with default options only (no plugins)
+  const md = new MarkdownIt();
+  const htmlSummary = md.render(summary);
 
     // Wrap in professional email template
     const professionalEmailHtml = `
